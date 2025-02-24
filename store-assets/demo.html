@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Link Lasso Demo Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+
+        .section {
+            margin: 40px 0;
+            padding: 20px;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .article-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .article {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .article h3 {
+            margin-top: 0;
+        }
+
+        .article a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+
+        .article a:hover {
+            text-decoration: underline;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .image-card {
+            text-align: center;
+        }
+
+        .image-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            background: #e8f0fe;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .split-panel {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .split-panel::before {
+            content: attr(data-label);
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #1a73e8;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .browser-chrome {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .browser-tabs {
+            background: #f1f3f4;
+            padding: 8px 8px 0;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 4px;
+        }
+
+        .browser-tab {
+            background: #fff;
+            padding: 6px 12px;
+            border-radius: 8px 8px 0 0;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-bottom: none;
+        }
+
+        .browser-tab.active {
+            background: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+        }
+
+        .browser-content {
+            padding: 15px;
+            background: #fff;
+        }
+
+        .selected-link {
+            color: #ff4500 !important;
+            font-weight: bold;
+        }
+
+        .toast-demo {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Link Lasso Demo</h1>
+    
+    <div class="instructions">
+        <strong>Taking Screenshots:</strong>
+        <ul>
+            <li>Set browser width to 1280px for proper screenshot dimensions</li>
+            <li>Use the article section for link gathering demos</li>
+            <li>Use the image section for gesture demos</li>
+            <li>Hide these instructions before capturing</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Latest Articles</h2>
+        <div class="article-list">
+            <div class="article">
+                <h3><a href="#article1">Understanding Browser Extensions</a></h3>
+                <p>Learn how modern browser extensions are revolutionizing the way we interact with web content...</p>
+                <a href="#readmore1">Read more →</a>
+            </div>
+            <div class="article">
+                <h3><a href="#article2">The Future of Web Navigation</a></h3>
+                <p>Discover new patterns and technologies that are making web browsing more efficient and intuitive...</p>
+                <a href="#readmore2">Read more →</a>
+            </div>
+            <div class="article">
+                <h3><a href="#article3">Productivity Tools for Developers</a></h3>
+                <p>Explore the essential tools and extensions that can supercharge your development workflow...</p>
+                <a href="#readmore3">Read more →</a>
+            </div>
+            <div class="article">
+                <h3><a href="#article4">Mastering Browser Shortcuts</a></h3>
+                <p>Learn the keyboard shortcuts and gestures that will make you a power user...</p>
+                <a href="#readmore4">Read more →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Featured Images</h2>
+        <div class="image-grid">
+            <div class="image-card">
+                <img src="https://picsum.photos/400/300?1" alt="Demo Image 1">
+                <p>Try dragging this image in different directions</p>
+            </div>
+            <div class="image-card">
+                <img src="https://picsum.photos/400/300?2" alt="Demo Image 2">
+                <p>Perfect for testing image gestures</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Link Collection Demo</h2>
+        <div class="split-view">
+            <div class="split-panel" data-label="During Collection">
+                <div class="article-list">
+                    <div class="article">
+                        <h3><a href="#article5" class="selected-link">Getting Started with Chrome Extensions</a></h3>
+                        <p>Your first step into extension development...</p>
+                    </div>
+                    <div class="article">
+                        <h3><a href="#article6" class="selected-link">Advanced Extension Features</a></h3>
+                        <p>Taking your extension to the next level...</p>
+                    </div>
+                </div>
+                <div class="toast-demo">2 links collected</div>
+            </div>
+            <div class="split-panel" data-label="After Release">
+                <div class="browser-chrome">
+                    <div class="browser-tabs">
+                        <div class="browser-tab active">Current Page</div>
+                        <div class="browser-tab">Getting Started...</div>
+                        <div class="browser-tab">Advanced Features...</div>
+                    </div>
+                    <div class="browser-content">
+                        Original page content remains in focus
+                    </div>
+                </div>
+                <div class="toast-demo">Opened 2 links in background tabs</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hide instructions when taking screenshots
+        document.querySelector('.instructions').addEventListener('click', function() {
+            this.style.display = 'none';
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,33 @@
+Link Lasso - Multi-Link Gatherer & Image Handler
+
+Description:
+Effortlessly gather and open multiple links with a simple right-click and hover gesture. Handle images with intuitive drag gestures for copying and downloading.
+
+Features:
+• Gather multiple links by holding right-click and hovering over them
+• Open all gathered links in background tabs with a single action
+• Copy all gathered links to clipboard by holding Shift
+• Handle images with intuitive gestures:
+  - Drag left to copy image URL
+  - Drag up to copy image to clipboard
+  - Drag down/right to download image
+• Visual feedback with link highlighting and counter
+• Toast notifications for all actions
+
+Perfect for:
+• Research and reading multiple articles
+• Saving sets of links for later
+• Quick image handling without context menus
+• Batch opening related links
+
+Privacy & Permissions:
+• No data collection
+• Only requires tabs and clipboard permissions
+• Works entirely offline
+• No external services or analytics
+
+Tips:
+• Hold right-click and hover over links to gather them
+• Release right-click to open all links
+• Hold Shift while releasing to copy links instead
+• Use drag gestures on images for quick actions 
