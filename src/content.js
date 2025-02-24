@@ -189,7 +189,15 @@
             canvas.width = tempImg.naturalWidth;
             canvas.height = tempImg.naturalHeight;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(tempImg, 0, 0);
+            
+            try {
+                ctx.drawImage(tempImg, 0, 0);
+                
+                // Check if canvas is tainted
+                ctx.getImageData(0, 0, 1, 1);
+            } catch (securityError) {
+                throw new Error('Image is protected and cannot be copied');
+            }
 
             try {
                 // Try PNG format first
@@ -199,8 +207,7 @@
                         'image/png': blob
                     })
                 ]);
-                showToast('Image copied to clipboard');
-                return;
+                return true; // Indicate success
             } catch (pngError) {
                 console.log('PNG copy failed, trying alternate format...');
                 // Try JPEG as fallback
@@ -210,11 +217,16 @@
                         'image/jpeg': blob
                     })
                 ]);
-                showToast('Image copied to clipboard');
+                return true; // Indicate success
             }
         } catch (error) {
             console.error('Failed to copy image:', error);
-            showToast('Failed to copy image - try downloading instead');
+            if (error.message.includes('protected')) {
+                showToast('This image is protected - try downloading instead');
+            } else {
+                showToast('Failed to copy image - try downloading instead');
+            }
+            return false; // Indicate failure
         }
     };
 
@@ -286,40 +298,38 @@
         return match ? match.map(Number) : [255, 255, 255];
     };
 
-    // Function to add a link to the set of hovered links and update the counter
-    const addLinkToHoveredList = (event) => {
-        if (!isRightClickMode) return;
-        const link = event.currentTarget;
-        const url = link.href;
-        if (url) {
-            // Toggle the link in/out of the set
-            if (hoveredLinks.has(url)) {
-                hoveredLinks.delete(url);
-                // Restore original styles
-                if (link._originalStyles) {
-                    Object.assign(link.style, link._originalStyles);
-                    delete link._originalStyles;
-                }
-            } else {
-                hoveredLinks.add(url);
-                // Store original styles
-                if (!link._originalStyles) {
-                    link._originalStyles = {
-                        color: link.style.color,
-                        fontWeight: link.style.fontWeight,
-                        backgroundColor: link.style.backgroundColor,
-                        transition: link.style.transition
-                    };
-                }
-                
-                // Apply highlight styles
-                link.style.color = '#ff4500';
-                link.style.fontWeight = 'bold';
-                link.style.backgroundColor = 'transparent';
-                link.style.transition = 'color 0.2s ease-in-out, font-weight 0.2s ease-in-out';
-            }
-            updateLinkCounterLabel();
+    // Debounce function to prevent rapid firing of events
+    const debounce = (func, wait) => {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    };
+
+    // Function to find the parent link element
+    const findParentLink = (element) => {
+        while (element && element.tagName !== 'A') {
+            element = element.parentElement;
         }
+        return element;
+    };
+
+    // Debug logging function
+    const debugEvent = (event, element) => {
+        const isLink = element.tagName === 'A';
+        const elementDesc = isLink ? 'LINK' : `${element.tagName} (child of link)`;
+        const url = isLink ? element.href : element.closest('a').href;
+        console.log(`%c${event.type}%c on %c${elementDesc}%c [${url}]`,
+            'color: red; font-weight: bold',
+            'color: black',
+            'color: blue; font-weight: bold',
+            'color: gray'
+        );
     };
 
     // Function to enable link-opening mode
@@ -339,12 +349,68 @@
 
         // Clear any text selection
         window.getSelection().removeAllRanges();
-        // Add mouseover listeners to all links
-        document.querySelectorAll('a[href]').forEach(link => {
-            link.addEventListener('mouseover', addLinkToHoveredList);
-            // Store original background color
-            link._originalBg = link.style.backgroundColor;
-        });
+
+        // Create a single event handler at the document level
+        const handleMouseMove = (e) => {
+            if (!isRightClickMode) return;
+            
+            // Find the link we're currently over (if any)
+            const link = findParentLink(e.target);
+            if (!link || !link.href) return;
+            
+            const url = link.href;
+            
+            // Check if this is a new link or one we're revisiting
+            if (!link._wasVisited) {
+                // First time visiting this link
+                hoveredLinks.add(url);
+                link._wasVisited = true;
+                
+                // Store original styles
+                if (!link._originalStyles) {
+                    const computed = window.getComputedStyle(link);
+                    link._originalStyles = {
+                        color: link.style.color || computed.color,
+                        fontWeight: link.style.fontWeight || computed.fontWeight,
+                        backgroundColor: link.style.backgroundColor || computed.backgroundColor,
+                        transition: link.style.transition || computed.transition
+                    };
+                }
+                
+                // Apply highlight styles
+                link.style.setProperty('color', '#ff4500', 'important');
+                link.style.setProperty('font-weight', 'bold', 'important');
+                link.style.setProperty('background-color', 'transparent', 'important');
+                link.style.setProperty('transition', 'color 0.2s ease-in-out, font-weight 0.2s ease-in-out', 'important');
+                
+                // Also style child elements
+                link.querySelectorAll('*').forEach(child => {
+                    const computed = window.getComputedStyle(child);
+                    if (!child._originalStyles) {
+                        child._originalStyles = {
+                            color: child.style.color || computed.color,
+                            fontWeight: child.style.fontWeight || computed.fontWeight,
+                            backgroundColor: child.style.backgroundColor || computed.backgroundColor,
+                            transition: child.style.transition || computed.transition
+                        };
+                    }
+                    child.style.setProperty('color', '#ff4500', 'important');
+                    child.style.setProperty('font-weight', 'bold', 'important');
+                    child.style.setProperty('background-color', 'transparent', 'important');
+                    child.style.setProperty('transition', 'color 0.2s ease-in-out, font-weight 0.2s ease-in-out', 'important');
+                });
+            }
+            
+            updateLinkCounterLabel();
+        };
+
+        // Add the single event listener
+        document.addEventListener('mousemove', handleMouseMove);
+        
+        // Store the handler so we can remove it later
+        document._linkLassoHandler = handleMouseMove;
+        
+        console.log('Link Lasso mode enabled - tracking mouse events');
     };
 
     // Function to handle mouse movement
@@ -398,10 +464,10 @@
                     break;
                 case 'up':
                     copyImageToClipboard(lastImageUnderCursor)
-                        .then(() => showToast('Image copied to clipboard'))
-                        .catch(error => {
-                            console.error('Failed to copy image:', error);
-                            showToast('Failed to copy image - try downloading instead');
+                        .then(success => {
+                            if (success) {
+                                showToast('Image copied to clipboard');
+                            }
                         });
                     break;
                 default: // down, right, or diagonal
@@ -443,18 +509,43 @@
         // Remove path canvas
         removePathCanvas();
         
-        // Remove mouseover listeners and restore original styles
+        // Remove the single event listener
+        if (document._linkLassoHandler) {
+            document.removeEventListener('mousemove', document._linkLassoHandler);
+            delete document._linkLassoHandler;
+        }
+        
+        // Restore all link styles
         document.querySelectorAll('a[href]').forEach(link => {
-            link.removeEventListener('mouseover', addLinkToHoveredList);
             if (link._originalStyles) {
+                // Remove !important styles first
+                link.style.removeProperty('color');
+                link.style.removeProperty('font-weight');
+                link.style.removeProperty('background-color');
+                link.style.removeProperty('transition');
+                // Then restore original styles
                 Object.assign(link.style, link._originalStyles);
                 delete link._originalStyles;
+                delete link._wasVisited;
+                
+                // Do the same for all child elements
+                link.querySelectorAll('*').forEach(child => {
+                    if (child._originalStyles) {
+                        child.style.removeProperty('color');
+                        child.style.removeProperty('font-weight');
+                        child.style.removeProperty('background-color');
+                        child.style.removeProperty('transition');
+                        Object.assign(child.style, child._originalStyles);
+                        delete child._originalStyles;
+                    }
+                });
             }
         });
         
         openLinksAndClearList(event);
         dragStartPos = null;
         isDragging = false;
+        console.log('Link Lasso mode disabled - stopped tracking mouse events');
     };
 
     // Suppress context menu on right mouse button release
@@ -480,4 +571,14 @@
     });
 
     console.log('Link Lasso initialized: Right-click and hold to gather links. For images: drag left to copy URL, up to copy image, other directions to download.');
+
+    // Expose functions for testing at the end, after everything is defined
+    window.LinkLasso = {
+        findParentLink,
+        getDragDirection,
+        showToast,
+        updateLinkCounterLabel,
+        hoveredLinks,
+        isRightClickMode
+    };
 })(); 
